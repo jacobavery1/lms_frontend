@@ -1,7 +1,10 @@
 import { useNavigate } from "react-router-dom"
 import { useFormik } from "formik"
 import * as Yup from "yup"
-import { Form, Alert, Button } from 'react-bootstrap'
+import { Form, Alert, Button, Card } from 'react-bootstrap'
+import * as services from "../services/services"
+import { useSelector, useDispatch } from 'react-redux'
+import { setUser } from '../store/reducers'
 
 
 function ValidateAlert({children}) {
@@ -10,6 +13,8 @@ function ValidateAlert({children}) {
 
 export default function Login() {
     const navigate = useNavigate()
+    const dispatch = useDispatch()
+    //const user = useSelector(state => state.user.value)
 
     const formik = useFormik({
         initialValues: {
@@ -23,13 +28,24 @@ export default function Login() {
             role: Yup.string().required("Please enter a role")
         }), 
         onSubmit: (values, { resetForm }) => {
-            console.log(values)
+            services.login(values.username, values.password, values.role).then(value => {
+                if (value.token != null && value.token.length > 0) {
+                    dispatch(setUser(value))
+                    navigate("/")
+                } else {
+                    alert("Incorrect username or password")
+                }
+            })
         }
     })
     
     return (
         <>
+            <Card className="mx-auto" style={{width: '20rem', marginTop: 100, marginBottom: 100}}>
+            <Card.Body>
+                <h2>Login</h2>
             <Form onSubmit={formik.handleSubmit}>
+                <br />
                 <Form.Group>
                     <Form.Label>Username</Form.Label>
                     <Form.Control 
@@ -74,6 +90,8 @@ export default function Login() {
                 <br />
                 <Button type="submit">Submit</Button>
             </Form>
+            </Card.Body>
+            </Card>
         </>
     )
 }
